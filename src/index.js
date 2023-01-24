@@ -1,7 +1,7 @@
 const DEFAULT_OPTIONS = {
     holdThreshold: 750,
-    acceptableDistThreshold: 16,
-    flickThreshold: 3,
+    acceptableDistThreshold: 1.5,
+    flickThreshold: 1.5,
 };
 
 Object.freeze(DEFAULT_OPTIONS);
@@ -13,17 +13,16 @@ export const enchantment = (target, opts) => {
     opts = Object.assign(DEFAULT_OPTIONS, opts);
     let pointertart;
     let holdedFlag = false;
-    let flickFlag = false;
     let latestPoint = [];
+
     /**
      * 
-     * @param {MouseEvent | TouchEvent} evt 
+     * @param {MouseEvent | TouchEvent} evt
      */
     const eventHandler = (evt) => {
         switch (evt.type) {
             case 'touchstart': {
                 latestPoint = [];
-                flickFlag = false;
                 if (!pointertart) {
                     pointertart = {
                         touches: evt.touches,
@@ -34,22 +33,21 @@ export const enchantment = (target, opts) => {
                                 cancelable: true,
                                 detail: {point: pointertart._poi, rawEv: evt}
                             }));
-                            pointertart = undefined;
+                            pointertart.handler = undefined;
                             holdedFlag = true;
                         }, opts.holdThreshold)
                     };
                 }
                 else {
-                    if (pointertart) {
+                    if (pointertart.handler) {
                         clearTimeout(pointertart.handler);
-                        pointertart = undefined;
+                        pointertart.handler = undefined;
                     }
                 }
                 break;
             }
             case 'mousedown': {
                 latestPoint = [];
-                flickFlag = false;
                 if (!pointertart) {
                     pointertart = {
                         button: evt.button,
@@ -62,33 +60,51 @@ export const enchantment = (target, opts) => {
                                 detail: {point: pointertart._poi, rawEv: evt}
                             }));
                             holdedFlag = true;
-                            pointertart = undefined;
+                            pointertart.handler = undefined;
                         }, opts.holdThreshold)
                     };
                 }
                 else {
-                    if (pointertart) {
-                        clearTimeout(pointertart.handler);
-                        pointertart = undefined;
-                    }
-                }
-                break;
-            }
-            case 'touchmove': {
-                flickFlag = false;
-                if (pointertart) {
-                    const {x: x1, y: y1} = pointertart._poi;
-                    const {pageX: x2, pageY: y2} = evt.touches[0];
-                    const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
-                    if (dist > opts.acceptableDistThreshold) {
+                    if (pointertart.handler) {
                         clearTimeout(pointertart.handler);
                         pointertart.handler = undefined;
                     }
                 }
                 break;
             }
+            case 'touchmove': {
+                if (evt.touches[0].screenY === 0) break;
+                if (pointertart) {
+                    const {x: x1, y: y1} = pointertart._poi;
+                    const {pageX: x2, pageY: y2} = evt.touches[0];
+                    const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
+
+                    if (!!latestPoint.length) latestPoint = [latestPoint.pop()];
+                    const {pageX: x, pageY: y} = evt.touches[0];
+                    const obj = {x, y};
+                    latestPoint.push(obj);
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        if (latestPoint[latestPoint.length - 1] === obj) latestPoint = [];
+                    }));
+
+                    if (dist > opts.acceptableDistThreshold) {
+                        clearTimeout(pointertart.handler);
+                        pointertart.handler = undefined;
+                    }
+                }
+
+                if (holdedFlag) {
+                    const {pageX: x, pageY: y} = evt.touches[0];
+                    target.dispatchEvent(new CustomEvent('holdmove', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {poi: {x, y}, rawEv: evt}
+                    }));
+                }
+                break;
+            }
             case 'mousemove': {
-                flickFlag = false;
+                if (evt.screenY === 0) break;
                 if (pointertart) {
                     const {x: x1, y: y1} = pointertart._poi;
                     const {pageX: x2, pageY: y2} = evt;
@@ -112,25 +128,59 @@ export const enchantment = (target, opts) => {
                     }
                 }
 
+                if (holdedFlag) {
+                    const {pageX: x, pageY: y} = evt;
+                    target.dispatchEvent(new CustomEvent('holdmove', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {poi: {x, y}, rawEv: evt}
+                    }));
+                }
                 break;
             }
             case 'touchend': {
-                latestPoint = [];
-                holdedFlag = false;
                 if (pointertart?.handler) {
                     clearTimeout(pointertart.handler);
                     pointertart.handler = undefined;
                 }
+                if (holdedFlag) {
+                    target.dispatchEvent(new CustomEvent('holdleave', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {poi: latestPoint[latestPoint.length - 1], rawEv: evt}
+                    }));
+                }
+                if (latestPoint.length >= 2) {
+                    const {x: x1, y: y1} = latestPoint[latestPoint.length - 2];
+                    const {x: x2, y: y2} = latestPoint[latestPoint.length - 1];
+                    const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
+                    if (dist > opts.flickThreshold && !holdedFlag) {
+                        target.dispatchEvent(new CustomEvent('flick', {
+                            bubbles: true,
+                            cancelable: true,
+                            detail: {start: pointertart._poi, poi: {x: x1, y: y1}, rawEv: evt, angle: Math.atan2(y2 - y1, x2 - x1), speed: dist}
+                        }));
+                    }
+                }
+
+                holdedFlag = false;
+                latestPoint = [];
                 pointertart = undefined;
                 break;
             }
             case 'mouseup': {
-                holdedFlag = false;
                 if (pointertart?.handler) {
                     clearTimeout(pointertart.handler);
                     pointertart.handler = undefined;
                 }
-                if (latestPoint.length >= 2) {
+                if (holdedFlag) {
+                    target.dispatchEvent(new CustomEvent('holdleave', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {poi: latestPoint[latestPoint.length - 1], rawEv: evt}
+                    }));
+                }
+                if (latestPoint.length >= 2 && !holdedFlag) {
                     const {x: x1, y: y1} = latestPoint[latestPoint.length - 2];
                     const {x: x2, y: y2} = latestPoint[latestPoint.length - 1];
                     const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
@@ -144,6 +194,7 @@ export const enchantment = (target, opts) => {
                 }
                 latestPoint = [];
                 pointertart = undefined;
+                holdedFlag = false;
                 break;
             }
         }

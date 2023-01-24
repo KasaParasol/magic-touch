@@ -12,11 +12,17 @@
     <script>
         const elem = document.getElementById('target');
         MagicTouch.enchantment(elem);
-        elem.addEventListener('hold', () => {
-            alert('hold');
+        elem.addEventListener('hold', (ev) => {
+            console.log(ev);
         });
         elem.addEventListener('flick', (ev) => {
-            console.log(ev.detail);
+            console.log(ev);
+        });
+        elem.addEventListener('holdmove', (ev) => {
+            console.log(ev);
+        });
+        elem.addEventListener('holdleave', (ev) => {
+            console.log(ev);
         });
     </script>
 </body>
