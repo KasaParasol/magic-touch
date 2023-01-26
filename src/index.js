@@ -118,7 +118,7 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdmove', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {poi: {x, y}, rawEv: evt},
+                    detail: {point: {x, y}, rawEv: evt},
                 }));
             }
 
@@ -160,7 +160,7 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdmove', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {poi: {x, y}, rawEv: evt},
+                    detail: {point: {x, y}, rawEv: evt},
                 }));
             }
 
@@ -177,7 +177,7 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdleave', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {poi: latestPoint[latestPoint.length - 1], rawEv: evt},
+                    detail: {point: latestPoint[latestPoint.length - 1], rawEv: evt},
                 }));
             }
 
@@ -189,7 +189,7 @@ function windowEventHander (evt) {
                     latestStartElem.dispatchEvent(new CustomEvent('flick', {
                         bubbles: true,
                         cancelable: true,
-                        detail: {start: pointertart._poi, poi: {x: x1, y: y1}, rawEv: evt, angle: Math.atan2(y2 - y1, x2 - x1), speed: dist},
+                        detail: {start: pointertart._poi, point: {x: x1, y: y1}, rawEv: evt, angle: Math.atan2(y2 - y1, x2 - x1), speed: dist},
                     }));
                 }
             }
@@ -210,7 +210,7 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdleave', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {poi: latestPoint[latestPoint.length - 1], rawEv: evt},
+                    detail: {point: latestPoint[latestPoint.length - 1], rawEv: evt},
                 }));
             }
 
@@ -222,7 +222,7 @@ function windowEventHander (evt) {
                     latestStartElem.dispatchEvent(new CustomEvent('flick', {
                         bubbles: true,
                         cancelable: true,
-                        detail: {start: pointertart._poi, poi: {x: x1, y: y1}, rawEv: evt, angle: Math.atan2(y2 - y1, x2 - x1), speed: dist},
+                        detail: {start: pointertart._poi, point: {x: x1, y: y1}, rawEv: evt, angle: Math.atan2(y2 - y1, x2 - x1), speed: dist},
                     }));
                 }
             }

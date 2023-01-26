@@ -1,5 +1,5 @@
 {
-    "name": "magic-tree",
+    "name": "magic-touch",
     "version": "0.0.1",
     "type": "module",
     "description": "ネイティブっぽい挙動のタッチイベントを提供します。",
