@@ -31,6 +31,8 @@
         "env": "browser",
         "space": 4,
         "rules": {
+            "no-extra-boolean-cast": "off",
+            "no-negated-condition": "off",
             "import/extensions": "off",
             "import/no-anonymous-default-export": "off",
             "n/file-extension-in-import": "off",
