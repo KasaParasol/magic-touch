@@ -83,7 +83,7 @@ export function enchantment (target, _opts) {
                     target.dispatchEvent(new CustomEvent('holdover', {
                         bubbles: true,
                         cancelable: true,
-                        detail: {point: {x, y}, rawEv: evt},
+                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                     }));
                 }
                 break;
@@ -119,7 +119,7 @@ export function enchantment (target, _opts) {
                     target.dispatchEvent(new CustomEvent('holddrop', {
                         bubbles: true,
                         cancelable: true,
-                        detail: {point: {x, y}, rawEv: evt},
+                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                     }));
                 }
                 break;
