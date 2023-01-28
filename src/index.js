@@ -80,7 +80,7 @@ export function enchantment (target, _opts) {
             case 'touchmove': {
                 if (evt.touches[0].screenY !== 0 && holdedFlag && latestStartElem && target !== latestStartElem) {
                     const {pageX: x, pageY: y} = evt.touches[0];
-                    latestStartElem.dispatchEvent(new CustomEvent('holdover', {
+                    target.dispatchEvent(new CustomEvent('holdover', {
                         bubbles: true,
                         cancelable: true,
                         detail: {point: {x, y}, rawEv: evt},
@@ -116,7 +116,7 @@ export function enchantment (target, _opts) {
             case 'mouseup': {
                 if (holdedFlag && latestStartElem && target !== latestStartElem) {
                     const {pageX: x, pageY: y} = evt;
-                    latestStartElem.dispatchEvent(new CustomEvent('holddrop', {
+                    target.dispatchEvent(new CustomEvent('holddrop', {
                         bubbles: true,
                         cancelable: true,
                         detail: {point: {x, y}, rawEv: evt},
