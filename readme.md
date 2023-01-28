@@ -30,6 +30,12 @@ elem.addEventListener('holdmove', (ev) => {
 elem.addEventListener('holdleave', (ev) => {
     // 長押しを解除した。
 });
+elem.addEventListener('holdover', (ev) => {
+    // enchantmentを受けた他の要素で長押しを開始し、elem上にマウスを移動した。
+});
+elem.addEventListener('holdldrop', (ev) => {
+    // enchantmentを受けた他の要素で長押しを開始し、elem上で長押しを解除した。
+});
 ```
 
 ドキュメント
@@ -59,11 +65,27 @@ elem.addEventListener('holdleave', (ev) => {
 | `point`   | `{x: number, y: numnber}`  | 移動後のタップまたはクリック座標(`pageX/pageY`相当) |
 | `rawEv`   | `MouseEvent \| TouchEvent` | `hold`イベントを発砲するきっかけとなった`mousedown`または`touchstart`イベントのイベントオブジェクト |
 
+- `holdover`
+
+| プロパティ | 型                         | 意味 |
+| --------- | -------------------------- | ---- |
+| `point`   | `{x: number, y: numnber}`  | 移動後のタップまたはクリック座標(`pageX/pageY`相当) |
+| `item`    | `HTMLElement`              | タップまたはクリックを開始した`HTMLElement` |
+| `rawEv`   | `MouseEvent \| TouchEvent` | `hold`イベントを発砲するきっかけとなった`mousedown`または`touchstart`イベントのイベントオブジェクト |
+
 - `holdleave`
 
 | プロパティ | 型                         | 意味 |
 | --------- | -------------------------- | ---- |
 | `point`   | `{x: number, y: numnber}`  | タップまたはクリックが終了する直前の座標(`pageX/pageY`相当) |
+| `rawEv`   | `MouseEvent \| TouchEvent` | `hold`イベントを発砲するきっかけとなった`mousedown`または`touchstart`イベントのイベントオブジェクト |
+
+- `holddrop`
+
+| プロパティ | 型                         | 意味 |
+| --------- | -------------------------- | ---- |
+| `point`   | `{x: number, y: numnber}`  | 移動後のタップまたはクリック座標(`pageX/pageY`相当) |
+| `item`    | `HTMLElement`              | タップまたはクリックを開始した`HTMLElement` |
 | `rawEv`   | `MouseEvent \| TouchEvent` | `hold`イベントを発砲するきっかけとなった`mousedown`または`touchstart`イベントのイベントオブジェクト |
 
 - `flick`

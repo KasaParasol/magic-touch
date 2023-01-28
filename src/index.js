@@ -76,11 +76,63 @@ export function enchantment (target, _opts) {
 
                 break;
             }
+
+            case 'touchmove': {
+                if (evt.touches[0].screenY !== 0 && holdedFlag && latestStartElem && target !== latestStartElem) {
+                    const {pageX: x, pageY: y} = evt.touches[0];
+                    latestStartElem.dispatchEvent(new CustomEvent('holdover', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {point: {x, y}, rawEv: evt},
+                    }));
+                }
+                break;
+            }
+
+            case 'mousemove': {
+                if (evt.screenY !== 0 && holdedFlag && latestStartElem && target !== latestStartElem) {
+                    const {pageX: x, pageY: y} = evt;
+                    target.dispatchEvent(new CustomEvent('holdover', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
+                    }));
+                }
+                break;
+            }
+
+            case 'touchend': {
+                if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                    const {pageX: x, pageY: y} = evt.touches[0];
+                    target.dispatchEvent(new CustomEvent('holddrop', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
+                    }));
+                }
+                break;
+            }
+
+            case 'mouseup': {
+                if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                    const {pageX: x, pageY: y} = evt;
+                    latestStartElem.dispatchEvent(new CustomEvent('holddrop', {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {point: {x, y}, rawEv: evt},
+                    }));
+                }
+                break;
+            }
         }
     };
 
     target.addEventListener('touchstart', eventHandler);
     target.addEventListener('mousedown', eventHandler);
+    target.addEventListener('touchmove', eventHandler);
+    target.addEventListener('touchend', eventHandler);
+    target.addEventListener('mousemove', eventHandler);
+    target.addEventListener('mouseup', eventHandler);
 }
 
 function windowEventHander (evt) {

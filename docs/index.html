@@ -8,6 +8,7 @@
 </head>
 <body>
     <div id="target">TouchHere</div>
+    <div id="droparea">DropHere</div>
     <script src="main.js"></script>
     <script>
         const elem = document.getElementById('target');
@@ -22,6 +23,32 @@
             console.log(ev);
         });
         elem.addEventListener('holdleave', (ev) => {
+            console.log(ev);
+        });
+        elem.addEventListener('holdover', (ev) => {
+            console.log(ev);
+        });
+        elem.addEventListener('holddrop', (ev) => {
+            console.log(ev);
+        });
+        const droparea = document.getElementById('droparea');
+        MagicTouch.enchantment(droparea);
+        droparea.addEventListener('hold', (ev) => {
+            console.log(ev);
+        });
+        droparea.addEventListener('flick', (ev) => {
+            console.log(ev);
+        });
+        droparea.addEventListener('holdmove', (ev) => {
+            console.log(ev);
+        });
+        droparea.addEventListener('holdleave', (ev) => {
+            console.log(ev);
+        });
+        droparea.addEventListener('holdover', (ev) => {
+            console.log(ev);
+        });
+        droparea.addEventListener('holddrop', (ev) => {
             console.log(ev);
         });
     </script>
