@@ -11,6 +11,7 @@ let pointertart;
 let holdedFlag = false;
 let latestPoint = [];
 let latestStartElem;
+let calcDepthTargets = [];
 
 /**
  * @param { HTMLElement } target
@@ -23,57 +24,79 @@ export function enchantment (target, _opts) {
      * @param {MouseEvent | TouchEvent} evt
      */
     const eventHandler = evt => {
+        evt.stopPropagation();
         switch (evt.type) {
             case 'touchstart': {
-                latestStartElem = target;
-                latestPoint = [];
-                if (!pointertart) {
-                    pointertart = {
-                        touches: evt.touches,
-                        _poi: {x: evt.touches[0].pageX, y: evt.touches[0].pageY},
-                        handler: setTimeout(() => {
-                            target.dispatchEvent(new CustomEvent('hold', {
-                                bubbles: true,
-                                cancelable: true,
-                                detail: {point: pointertart._poi, rawEv: evt},
-                            }));
-                            pointertart.handler = undefined;
-                            holdedFlag = true;
-                        }, opts.holdThreshold),
-                    };
-                }
-                else if (pointertart.handler) {
-                    clearTimeout(pointertart.handler);
-                    pointertart.handler = undefined;
-                }
+                calcDepthTargets.push(target);
+                setTimeout(() => {
+                    const t = calcDepthTargets.reduce((a, e) => {
+                        if (!a) return {result: calcdepth(e), ref: e};
+                        const depth = calcdepth(e);
+                        if (a.result < depth) return {result: depth, ref: e};
+                    }, undefined).ref;
+                    calcDepthTargets = [];
 
+                    if (t !== target) return;
+
+                    latestStartElem = target;
+                    latestPoint = [];
+                    if (!pointertart) {
+                        pointertart = {
+                            touches: evt.touches,
+                            _poi: {x: evt.touches[0].pageX, y: evt.touches[0].pageY},
+                            handler: setTimeout(() => {
+                                target.dispatchEvent(new CustomEvent('hold', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    detail: {point: pointertart._poi, rawEv: evt},
+                                }));
+                                pointertart.handler = undefined;
+                                holdedFlag = true;
+                            }, opts.holdThreshold),
+                        };
+                    }
+                    else if (pointertart.handler) {
+                        clearTimeout(pointertart.handler);
+                        pointertart.handler = undefined;
+                    }
+                }, 1);
                 break;
             }
 
             case 'mousedown': {
-                latestStartElem = target;
-                latestPoint = [];
-                if (!pointertart) {
-                    pointertart = {
-                        button: evt.button,
-                        buttons: evt.buttons,
-                        _poi: {x: evt.pageX, y: evt.pageY},
-                        handler: setTimeout(() => {
-                            target.dispatchEvent(new CustomEvent('hold', {
-                                bubbles: true,
-                                cancelable: true,
-                                detail: {point: pointertart._poi, rawEv: evt},
-                            }));
-                            holdedFlag = true;
-                            pointertart.handler = undefined;
-                        }, opts.holdThreshold),
-                    };
-                }
-                else if (pointertart.handler) {
-                    clearTimeout(pointertart.handler);
-                    pointertart.handler = undefined;
-                }
+                calcDepthTargets.push(target);
+                setTimeout(() => {
+                    const t = calcDepthTargets.reduce((a, e) => {
+                        if (!a) return {result: calcdepth(e), ref: e};
+                        const depth = calcdepth(e);
+                        if (a.result < depth) return {result: depth, ref: e};
+                    }, undefined).ref;
+                    calcDepthTargets = [];
 
+                    if (t !== target) return;
+                    latestStartElem = target;
+                    latestPoint = [];
+                    if (!pointertart) {
+                        pointertart = {
+                            button: evt.button,
+                            buttons: evt.buttons,
+                            _poi: {x: evt.pageX, y: evt.pageY},
+                            handler: setTimeout(() => {
+                                target.dispatchEvent(new CustomEvent('hold', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    detail: {point: pointertart._poi, rawEv: evt},
+                                }));
+                                holdedFlag = true;
+                                pointertart.handler = undefined;
+                            }, opts.holdThreshold),
+                        };
+                    }
+                    else if (pointertart.handler) {
+                        clearTimeout(pointertart.handler);
+                        pointertart.handler = undefined;
+                    }
+                }, 1);
                 break;
             }
 
@@ -102,26 +125,50 @@ export function enchantment (target, _opts) {
             }
 
             case 'touchend': {
-                if (holdedFlag && latestStartElem && target !== latestStartElem) {
-                    const {pageX: x, pageY: y} = evt.touches[0];
-                    target.dispatchEvent(new CustomEvent('holddrop', {
-                        bubbles: true,
-                        cancelable: true,
-                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
-                    }));
-                }
+                calcDepthTargets.push(target);
+                setTimeout(() => {
+                    const t = calcDepthTargets.reduce((a, e) => {
+                        if (!a) return {result: calcdepth(e), ref: e};
+                        const depth = calcdepth(e);
+                        if (a.result < depth) return {result: depth, ref: e};
+                    }, undefined).ref;
+                    calcDepthTargets = [];
+
+                    if (t !== target) return;
+
+                    if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                        const {pageX: x, pageY: y} = evt.touches[0];
+                        target.dispatchEvent(new CustomEvent('holddrop', {
+                            bubbles: true,
+                            cancelable: true,
+                            detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
+                        }));
+                    }
+                }, 1);
                 break;
             }
 
             case 'mouseup': {
-                if (holdedFlag && latestStartElem && target !== latestStartElem) {
-                    const {pageX: x, pageY: y} = evt;
-                    target.dispatchEvent(new CustomEvent('holddrop', {
-                        bubbles: true,
-                        cancelable: true,
-                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
-                    }));
-                }
+                calcDepthTargets.push(target);
+                setTimeout(() => {
+                    const t = calcDepthTargets.reduce((a, e) => {
+                        if (!a) return {result: calcdepth(e), ref: e};
+                        const depth = calcdepth(e);
+                        if (a.result < depth) return {result: depth, ref: e};
+                    }, undefined).ref;
+                    calcDepthTargets = [];
+
+                    if (t !== target) return;
+
+                    if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                        const {pageX: x, pageY: y} = evt;
+                        target.dispatchEvent(new CustomEvent('holddrop', {
+                            bubbles: true,
+                            cancelable: true,
+                            detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
+                        }));
+                    }
+                }, 1);
                 break;
             }
         }
@@ -136,6 +183,7 @@ export function enchantment (target, _opts) {
 }
 
 function windowEventHander (evt) {
+    evt.stopPropagation();
     if (!latestStartElem) return;
 
     switch (evt.type) {
@@ -285,6 +333,16 @@ function windowEventHander (evt) {
             break;
         }
     }
+}
+
+const calcdepth = (e) => {
+    let current = e;
+    let depth = 0;
+    while (current.parentElement) {
+        current = current.parentElement;
+        depth++;
+    }
+    return depth;
 }
 
 window.addEventListener('touchmove', windowEventHander);
