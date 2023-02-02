@@ -24,7 +24,8 @@ export function enchantment (target, _opts) {
      * @param {MouseEvent | TouchEvent} evt
      */
     const eventHandler = evt => {
-        evt.stopPropagation();
+        if (evt.target !== evt.currentTarget) return;
+
         switch (evt.type) {
             case 'touchstart': {
                 calcDepthTargets.push(target);
@@ -195,8 +196,7 @@ export function enchantment (target, _opts) {
 }
 
 function windowEventHander (evt) {
-    evt.stopPropagation();
-    if (!latestStartElem) return;
+    if (evt.target !== evt.currentTarget || !latestStartElem) return;
 
     switch (evt.type) {
         case 'touchmove': {
