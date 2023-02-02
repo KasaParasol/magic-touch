@@ -130,6 +130,8 @@ export function enchantment (target, _opts) {
             }
 
             case 'touchend': {
+                const holdedFlagCache = holdedFlag;
+
                 calcDepthTargets.push(target);
                 setTimeout(() => {
                     const t = calcDepthTargets.reduce((a, e) => {
@@ -141,7 +143,7 @@ export function enchantment (target, _opts) {
 
                     if (t !== target) return;
 
-                    if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                    if (holdedFlagCache && latestStartElem && target !== latestStartElem) {
                         const {pageX: x, pageY: y} = evt.touches[0];
                         target.dispatchEvent(new CustomEvent('holddrop', {
                             bubbles: true,
@@ -149,15 +151,13 @@ export function enchantment (target, _opts) {
                             detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                         }));
                     }
-
-                    latestPoint = [];
-                    pointertart = undefined;
-                    holdedFlag = false;
                 }, 1);
                 break;
             }
 
             case 'mouseup': {
+                const holdedFlagCache = holdedFlag;
+
                 calcDepthTargets.push(target);
                 setTimeout(() => {
                     const t = calcDepthTargets.reduce((a, e) => {
@@ -169,7 +169,7 @@ export function enchantment (target, _opts) {
 
                     if (t !== target) return;
 
-                    if (holdedFlag && latestStartElem && target !== latestStartElem) {
+                    if (holdedFlagCache && latestStartElem && target !== latestStartElem) {
                         const {pageX: x, pageY: y} = evt;
                         target.dispatchEvent(new CustomEvent('holddrop', {
                             bubbles: true,
@@ -177,10 +177,6 @@ export function enchantment (target, _opts) {
                             detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                         }));
                     }
-
-                    latestPoint = [];
-                    pointertart = undefined;
-                    holdedFlag = false;
                 }, 1);
                 break;
             }
@@ -196,7 +192,7 @@ export function enchantment (target, _opts) {
 }
 
 function windowEventHander (evt) {
-    if (evt.target !== evt.currentTarget || !latestStartElem) return;
+    if (!latestStartElem) return;
 
     switch (evt.type) {
         case 'touchmove': {
