@@ -114,13 +114,17 @@ export function enchantment (target, _opts) {
 
             case 'mousemove': {
                 if (evt.screenY !== 0 && holdedFlag && latestStartElem && target !== latestStartElem) {
-                    const {pageX: x, pageY: y} = evt;
-                    target.dispatchEvent(new CustomEvent('holdover', {
-                        bubbles: true,
-                        cancelable: true,
-                        detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
-                    }));
+                    if (evt.button === pointertart.button
+                    && evt.buttons === pointertart.buttons) {
+                        const {pageX: x, pageY: y} = evt;
+                        target.dispatchEvent(new CustomEvent('holdover', {
+                            bubbles: true,
+                            cancelable: true,
+                            detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
+                        }));
+                    }
                 }
+
                 break;
             }
 
@@ -144,6 +148,10 @@ export function enchantment (target, _opts) {
                             detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                         }));
                     }
+
+                    latestPoint = [];
+                    pointertart = undefined;
+                    holdedFlag = false;
                 }, 1);
                 break;
             }
@@ -168,6 +176,10 @@ export function enchantment (target, _opts) {
                             detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
                         }));
                     }
+
+                    latestPoint = [];
+                    pointertart = undefined;
+                    holdedFlag = false;
                 }, 1);
                 break;
             }
@@ -233,7 +245,7 @@ function windowEventHander (evt) {
                 const {pageX: x2, pageY: y2} = evt;
                 const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
                 if (evt.button === pointertart.button
-                || evt.buttons === pointertart.buttons) {
+                && evt.buttons === pointertart.buttons) {
                     if (latestPoint.length > 0) {
                         latestPoint = [latestPoint.pop()];
                     }
