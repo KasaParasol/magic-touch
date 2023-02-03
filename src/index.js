@@ -9,15 +9,19 @@ Object.freeze(DEFAULT_OPTIONS);
 let opts = {...DEFAULT_OPTIONS};
 let pointertart;
 let holdedFlag = false;
-let latestPoint = [];
+let flickJudge = [];
+let latestPoint;
 let latestStartElem;
 let calcDepthTargets = [];
+const enchanted = [];
 
 /**
  * @param { HTMLElement } target
  */
 export function enchantment (target, _opts) {
     opts = Object.assign(DEFAULT_OPTIONS, _opts);
+
+    enchanted.push(target);
 
     /**
      *
@@ -40,7 +44,8 @@ export function enchantment (target, _opts) {
                     if (t !== target) return;
 
                     latestStartElem = target;
-                    latestPoint = [];
+                    flickJudge = [];
+                    latestPoint = {x: evt.touches[0].pageX, y: evt.touches[0].pageY};
                     if (!pointertart) {
                         pointertart = {
                             touches: evt.touches,
@@ -76,7 +81,8 @@ export function enchantment (target, _opts) {
 
                     if (t !== target) return;
                     latestStartElem = target;
-                    latestPoint = [];
+                    flickJudge = [];
+                    latestPoint = {x: evt.pageX, y: evt.pageY};
                     if (!pointertart) {
                         pointertart = {
                             button: evt.button,
@@ -102,9 +108,12 @@ export function enchantment (target, _opts) {
             }
 
             case 'touchmove': {
-                if (evt.touches[0].screenY !== 0 && holdedFlag && latestStartElem && target !== latestStartElem) {
-                    const {pageX: x, pageY: y} = evt.touches[0];
-                    target.dispatchEvent(new CustomEvent('holdover', {
+                evt.preventDefault();
+                const {pageX: x, pageY: y} = evt.touches[0];
+                const i = document.elementFromPoint(x, y);
+
+                if (evt.touches[0].screenY !== 0 && holdedFlag && latestStartElem && i !== latestStartElem && enchanted.includes(i)) {
+                    i.dispatchEvent(new CustomEvent('holdover', {
                         bubbles: true,
                         cancelable: true,
                         detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
@@ -130,22 +139,17 @@ export function enchantment (target, _opts) {
             }
 
             case 'touchend': {
+                evt.preventDefault();
                 const holdedFlagCache = holdedFlag;
 
-                calcDepthTargets.push(target);
                 setTimeout(() => {
-                    const t = calcDepthTargets.reduce((a, e) => {
-                        if (!a) return {result: calcdepth(e), ref: e};
-                        const depth = calcdepth(e);
-                        if (a.result < depth) return {result: depth, ref: e};
-                    }, undefined).ref;
-                    calcDepthTargets = [];
+                    const {x, y} = latestPoint;
+                    const i = document.elementFromPoint(x, y);
 
-                    if (t !== target) return;
+                    document.querySelector('textarea').value = `${holdedFlagCache}`
 
-                    if (holdedFlagCache && latestStartElem && target !== latestStartElem) {
-                        const {pageX: x, pageY: y} = evt.touches[0];
-                        target.dispatchEvent(new CustomEvent('holddrop', {
+                    if (holdedFlagCache && latestStartElem && latestStartElem !== i && enchanted.includes(i)) {
+                        i.dispatchEvent(new CustomEvent('holddrop', {
                             bubbles: true,
                             cancelable: true,
                             detail: {point: {x, y}, item: latestStartElem, rawEv: evt},
@@ -196,6 +200,7 @@ function windowEventHander (evt) {
 
     switch (evt.type) {
         case 'touchmove': {
+            evt.preventDefault();
             if (evt.touches[0].screenY === 0) break;
 
             if (pointertart) {
@@ -203,16 +208,17 @@ function windowEventHander (evt) {
                 const {pageX: x2, pageY: y2} = evt.touches[0];
                 const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
 
-                if (latestPoint.length > 0) {
-                    latestPoint = [latestPoint.pop()];
+                if (flickJudge.length > 0) {
+                    flickJudge = [flickJudge.pop()];
                 }
 
                 const {pageX: x, pageY: y} = evt.touches[0];
                 const obj = {x, y};
-                latestPoint.push(obj);
+                flickJudge.push(obj);
+                latestPoint = obj;
                 requestAnimationFrame(() => requestAnimationFrame(() => {
-                    if (latestPoint[latestPoint.length - 1] === obj)
-                        latestPoint = [];
+                    if (flickJudge[flickJudge.length - 1] === obj)
+                        flickJudge = [];
                 }));
 
                 if (dist > opts.acceptableDistThreshold) {
@@ -242,16 +248,17 @@ function windowEventHander (evt) {
                 const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
                 if (evt.button === pointertart.button
                 && evt.buttons === pointertart.buttons) {
-                    if (latestPoint.length > 0) {
-                        latestPoint = [latestPoint.pop()];
+                    if (flickJudge.length > 0) {
+                        flickJudge = [flickJudge.pop()];
                     }
 
                     const {pageX: x, pageY: y} = evt;
                     const obj = {x, y};
-                    latestPoint.push(obj);
+                    flickJudge.push(obj);
+                    latestPoint = obj;
                     requestAnimationFrame(() => requestAnimationFrame(() => {
-                        if (latestPoint[latestPoint.length - 1] === obj)
-                            latestPoint = [];
+                        if (flickJudge[flickJudge.length - 1] === obj)
+                            flickJudge = [];
                     }));
                 }
 
@@ -276,6 +283,8 @@ function windowEventHander (evt) {
         }
 
         case 'touchend': {
+            evt.preventDefault();
+
             if (pointertart?.handler) {
                 clearTimeout(pointertart.handler);
                 pointertart.handler = undefined;
@@ -285,13 +294,13 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdleave', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {point: latestPoint[latestPoint.length - 1], rawEv: evt},
+                    detail: {point: flickJudge[flickJudge.length - 1], rawEv: evt},
                 }));
             }
 
-            if (latestPoint.length >= 2) {
-                const {x: x1, y: y1} = latestPoint[latestPoint.length - 2];
-                const {x: x2, y: y2} = latestPoint[latestPoint.length - 1];
+            if (flickJudge.length >= 2) {
+                const {x: x1, y: y1} = flickJudge[flickJudge.length - 2];
+                const {x: x2, y: y2} = flickJudge[flickJudge.length - 1];
                 const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
                 if (dist > opts.flickThreshold && !holdedFlag) {
                     latestStartElem.dispatchEvent(new CustomEvent('flick', {
@@ -303,7 +312,7 @@ function windowEventHander (evt) {
             }
 
             holdedFlag = false;
-            latestPoint = [];
+            flickJudge = [];
             pointertart = undefined;
             break;
         }
@@ -318,13 +327,13 @@ function windowEventHander (evt) {
                 latestStartElem.dispatchEvent(new CustomEvent('holdleave', {
                     bubbles: true,
                     cancelable: true,
-                    detail: {point: latestPoint[latestPoint.length - 1], rawEv: evt},
+                    detail: {point: flickJudge[flickJudge.length - 1], rawEv: evt},
                 }));
             }
 
-            if (latestPoint.length >= 2 && !holdedFlag) {
-                const {x: x1, y: y1} = latestPoint[latestPoint.length - 2];
-                const {x: x2, y: y2} = latestPoint[latestPoint.length - 1];
+            if (flickJudge.length >= 2 && !holdedFlag) {
+                const {x: x1, y: y1} = flickJudge[flickJudge.length - 2];
+                const {x: x2, y: y2} = flickJudge[flickJudge.length - 1];
                 const dist = Math.sqrt(Math.abs(x1 - x2) ^ 2 + Math.abs(y1 - y2) ^ 2);
                 if (dist > opts.flickThreshold) {
                     latestStartElem.dispatchEvent(new CustomEvent('flick', {
@@ -335,7 +344,7 @@ function windowEventHander (evt) {
                 }
             }
 
-            latestPoint = [];
+            flickJudge = [];
             pointertart = undefined;
             holdedFlag = false;
             break;
