@@ -28,7 +28,11 @@ export function enchantment (target, _opts) {
      * @param {MouseEvent | TouchEvent} evt
      */
     const eventHandler = evt => {
-        if (evt.target !== evt.currentTarget) return;
+        const calcTarget = enchanted.filter(e => e.contains(evt.target))
+                                     .map(e => {return {ref: e, result: calcdepth(e)}})
+                                     .reduce((a, e) => !a || a.result < e.result? e: a )
+                                     .ref;
+        if (calcTarget !== evt.currentTarget) return;
 
         switch (evt.type) {
             case 'touchstart': {
